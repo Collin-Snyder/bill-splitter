@@ -1,25 +1,32 @@
 import React, { ChangeEvent, useState } from "react";
 import logo from "./logo.svg";
-import "./App.css";
+import "./App.scss";
 import IndividualBillEditor from "./IndividualBillEditor";
 import If from "./If";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Button,
+  Divider,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  TextField,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CurrencyInput from "./CurrencyInput";
+import CalculationResultsDialog, {
+  IIndividualTotal,
+} from "./CalculationResults";
 
 interface IIndividualBill {
   id: number;
   name: string;
   itemCosts: number[];
-}
-
-interface IIndividualTotal {
-  name: string;
-  total: number;
 }
 
 function App() {
@@ -35,7 +42,7 @@ function App() {
   const [individualTotals, setIndividualTotals] = useState<IIndividualTotal[]>(
     []
   );
-  const [showIndividualTotals, setShowIndividualTotals] =
+  const [showCalculationResultsDialog, setShowCalculationResultsDialog] =
     useState<boolean>(false);
 
   const addIndividualBill = () => {
@@ -76,29 +83,53 @@ function App() {
     setIndividualBillEditorToShow(null);
   };
 
+  const handleIndividualBillEditorChange = (billId: number) => {
+    if (individualBillEditorToShow === billId)
+      setIndividualBillEditorToShow(null);
+    else setIndividualBillEditorToShow(billId);
+  };
+
   const handleTaxValueChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setTaxValue(Number(event.target.value));
+    if (event.target.value == "0") {
+      setTaxValue(0);
+    }
+    setTaxValue(Number(event.target.value) || undefined);
   };
 
   const handleTipValueChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setTipValue(Number(event.target.value));
+    if (event.target.value == "0") {
+      setTipValue(0);
+    }
+    setTipValue(Number(event.target.value) || undefined);
   };
 
   const handleOtherValueChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setOtherValue(Number(event.target.value));
+    if (event.target.value == "0") {
+      setOtherValue(0);
+    }
+    setOtherValue(Number(event.target.value) || undefined);
   };
 
   const handleEvenSplitValueChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setEvenSplitValue(Number(event.target.value));
+    if (event.target.value == "0") {
+      setEvenSplitValue(0);
+    }
+    setEvenSplitValue(Number(event.target.value) || undefined);
   };
 
   const calculate = () => {
     const foodAndDrinkTotal = individualBills.reduce((sum, bill) => {
       return sum + sumCostArray(bill.itemCosts);
     }, 0);
-    const taxPercentage = Number(((taxValue || 0) / foodAndDrinkTotal).toFixed(2));
-    const tipPercentage = Number(((tipValue || 0) / foodAndDrinkTotal).toFixed(2));
-    const otherPercentage = Number(((otherValue || 0) / foodAndDrinkTotal).toFixed(2));
+    const taxPercentage = Number(
+      ((taxValue || 0) / foodAndDrinkTotal).toFixed(2)
+    );
+    const tipPercentage = Number(
+      ((tipValue || 0) / foodAndDrinkTotal).toFixed(2)
+    );
+    const otherPercentage = Number(
+      ((otherValue || 0) / foodAndDrinkTotal).toFixed(2)
+    );
     const evenSplitPerIndividual =
       (evenSplitValue || 0) / (individualBills.length || 1);
 
@@ -116,7 +147,7 @@ function App() {
     });
 
     setIndividualTotals(newIndividualTotals);
-    setShowIndividualTotals(true);
+    setShowCalculationResultsDialog(true);
   };
 
   const calculateEntireBill = () => {
@@ -124,13 +155,24 @@ function App() {
       return sum + sumCostArray(bill.itemCosts);
     }, 0);
     return (
-      foodAndDrinkTotal + (taxValue || 0) + (tipValue || 0) + (otherValue || 0) + (evenSplitValue || 0)
+      foodAndDrinkTotal +
+      (taxValue || 0) +
+      (tipValue || 0) +
+      (otherValue || 0) +
+      (evenSplitValue || 0)
     );
   };
 
   const reset = () => {
     setNextBillId(0);
     setIndividualBills([]);
+  };
+
+  const handleCloseDialog = (
+    event: {},
+    reason: "backdropClick" | "escapeKeyDown"
+  ) => {
+    setShowCalculationResultsDialog(false);
   };
 
   return (
@@ -141,15 +183,26 @@ function App() {
 
       <div id="individual-bill-container">
         <If condition={!individualBills.length}>
-          <div>
-            <p>Add individual to get started!</p>
-          </div>
+          <p>Add individual to get started!</p>
         </If>
 
         <If condition={!!individualBills.length}>
-          {individualBills.map((bill) => {
-            if (individualBillEditorToShow === bill.id) {
-              return (
+          {individualBills.map((bill) => (
+            <Accordion
+              sx={{ width: "100%" }}
+              expanded={individualBillEditorToShow === bill.id}
+              onChange={() => handleIndividualBillEditorChange(bill.id)}
+            >
+              <AccordionSummary
+                id={`individual-bill-header-${bill.id}`}
+                expandIcon={<ExpandMoreIcon />}
+              >
+                <strong>
+                  {bill.name || "New Individual"}'s Individual Cost: $
+                  {sumCostArray(bill.itemCosts)}
+                </strong>
+              </AccordionSummary>
+              <AccordionDetails>
                 <IndividualBillEditor
                   {...bill}
                   setName={(name: string) => updateBillName(bill, name)}
@@ -157,90 +210,70 @@ function App() {
                   deleteItemCost={(index: number) =>
                     deleteBillCost(bill, index)
                   }
-                  closeEditor={closeBillEditors}
+                  closeEditor={() => handleIndividualBillEditorChange(bill.id)}
                 />
-              );
-            }
-            return (
-              <div>
-                <p>
-                  {bill.name}'s Food And Drink Cost: $
-                  {sumCostArray(bill.itemCosts)}
-                </p>
-                <button onClick={() => openBillEditor(bill.id)}>Edit</button>
-              </div>
-            );
-          })}
+              </AccordionDetails>
+            </Accordion>
+          ))}
         </If>
 
-        <button onClick={addIndividualBill}>Add Individual</button>
+        <Button variant="contained" color="primary" onClick={addIndividualBill}>
+          Add Individual
+        </Button>
       </div>
 
-      <div id="percentage-costs-container">
-        <label htmlFor="tax-input">
-          Tax
-          <input
-            id="tax-input"
-            type="number"
-            value={taxValue}
-            onChange={handleTaxValueChange}
-          />
-        </label>
-        <label htmlFor="tip-input">
-          Tip
-          <input
-            id="tip-input"
-            type="number"
-            value={tipValue}
-            onChange={handleTipValueChange}
-          />
-        </label>
-        <label htmlFor="other-percentage-cost-input">
-          Other Percentage-Based Costs
-          <input
-            id="other-percentage-cost-input"
-            type="number"
-            value={otherValue}
-            onChange={handleOtherValueChange}
-          />
-        </label>
-        <label htmlFor="even-split-cost-input">
-          Even-Split Costs
-          <input
-            id="even-split-cost-input"
-            type="number"
-            value={evenSplitValue}
-            onChange={handleEvenSplitValueChange}
-          />
-        </label>
-      </div>
-      <button onClick={calculate}>Calculate Split Costs</button>
-      <button onClick={reset}>Reset All</button>
+      <Divider id="group-costs-divider">Group Costs</Divider>
 
-      <If condition={showIndividualTotals}>
-        <div>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Individual</TableCell>
-                <TableCell>Total Owed</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {individualTotals.map(({ name, total }) => (
-                <TableRow>
-                  <TableCell>{name}</TableCell>
-                  <TableCell>${total.toFixed(2)}</TableCell>
-                </TableRow>
-              ))}
-              <TableRow>
-                <TableCell>ENTIRE BILL</TableCell>
-                <TableCell>${calculateEntireBill().toFixed(2)}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-      </If>
+      <Stack spacing={2}>
+        <TextField
+          label="Tax"
+          id="tax-input"
+          value={taxValue}
+          onChange={handleTaxValueChange}
+          size="small"
+          InputProps={{ inputComponent: CurrencyInput as any }}
+        />
+        <TextField
+          label="Tip"
+          id="tip-input"
+          value={tipValue}
+          onChange={handleTipValueChange}
+          size="small"
+          InputProps={{ inputComponent: CurrencyInput as any }}
+        />
+        <TextField
+          label=" Other Percentage-Based Costs"
+          id="other-percentage-cost-input"
+          value={otherValue}
+          onChange={handleOtherValueChange}
+          size="small"
+          InputProps={{ inputComponent: CurrencyInput as any }}
+        />
+        <TextField
+          label="Even-Split Costs"
+          id="even-split-cost-input"
+          value={evenSplitValue}
+          onChange={handleEvenSplitValueChange}
+          size="small"
+          InputProps={{ inputComponent: CurrencyInput as any }}
+        />
+      </Stack>
+
+      <Stack id="bottom-button-container" spacing={1}>
+        <Button variant="contained" color="success" onClick={calculate}>
+          Calculate Split Costs
+        </Button>
+        <Button variant="outlined" color="error" onClick={reset}>
+          Reset All
+        </Button>
+      </Stack>
+
+      <CalculationResultsDialog
+        open={showCalculationResultsDialog}
+        individualTotals={individualTotals}
+        entireBillTotal={calculateEntireBill()}
+        handleClose={handleCloseDialog}
+      />
     </div>
   );
 }

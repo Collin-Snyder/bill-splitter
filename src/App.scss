@@ -1,0 +1,33 @@
+.App {
+  padding: 1rem;
+
+  #individual-bill-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    & > button {
+      margin-top: 1rem;
+    }
+  }
+
+  #group-costs-divider {
+    margin: 1rem 0;
+  }
+
+  #group-costs-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #bottom-button-container {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+}

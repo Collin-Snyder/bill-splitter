@@ -1,19 +1,10 @@
 import React, { ChangeEvent, MouseEvent, useState } from "react";
 import If from "./If";
 
-import "./IndividualBillEditor.css";
-import {
-  Button,
-  Card,
-  CardActionArea,
-  CardActions,
-  CardContent,
-  CardHeader,
-  List,
-  ListItem,
-  ListItemText,
-  TextField,
-} from "@mui/material";
+import "./IndividualBillEditor.scss";
+
+import { Button, Divider, Stack, TextField } from "@mui/material";
+import CurrencyInput from "./CurrencyInput";
 
 interface IndividualBillEditorProps {
   id: number;
@@ -68,11 +59,10 @@ const IndividualBillEditor = ({
   };
 
   return (
-    <Card raised={true} className="individual-bill-editor">
-      <CardHeader title={name ? `${name}'s Bill` : `New Individual Bill`}>
-        {name ? <h2>{name}'s Bill</h2> : <h2>New Individual Bill</h2>}
-      </CardHeader>
-      <CardContent>
+    <div>
+      {/* {name ? <h2>{name}'s Bill</h2> : <h2>New Individual Bill</h2>} */}
+
+      <Stack spacing={1}>
         <If condition={!name}>
           <div className="individual-name-editor">
             <TextField
@@ -81,6 +71,7 @@ const IndividualBillEditor = ({
               type="text"
               value={nameValue}
               onChange={handleNameChange}
+              size="small"
             />
             <Button
               variant="outlined"
@@ -94,31 +85,34 @@ const IndividualBillEditor = ({
         </If>
 
         <If condition={!!itemCosts.length}>
-          <List></List>
           {itemCosts.map((cost, i) => (
-            <ListItem key="cost">
-              <ListItemText>${cost.toFixed(2)}</ListItemText>
-              <Button
-                variant="outlined"
-                color="error"
-                size="small"
-                onClick={() => handleDeleteCost(i)}
-              >
-                Delete
-              </Button>
-            </ListItem>
+            <>
+              <div key="cost" className="individual-cost-item">
+                <p><strong>${cost.toFixed(2)}</strong></p>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={() => handleDeleteCost(i)}
+                >
+                  Delete
+                </Button>
+              </div>
+             
+            </>
           ))}
         </If>
 
-        <div>
+        <div className="individual-cost-editor">
           <TextField
-            label={`Enter a cost item for ${name ? name : "this individual"}`}
+            label="Enter a cost item"
             id={`new-cost-item-${name || "new-individual"}`}
-            type="number"
             value={nextItemCostValue}
             onChange={handleNextItemCostValueChange}
             size="small"
+            InputProps={{ inputComponent: CurrencyInput as any }}
           />
+
           <Button
             variant="outlined"
             color="secondary"
@@ -128,18 +122,17 @@ const IndividualBillEditor = ({
             Save
           </Button>
         </div>
-        <CardActions>
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            onClick={handleSaveIndividualBill}
-          >
-            Save Individual Bill
-          </Button>
-        </CardActions>
-      </CardContent>
-    </Card>
+
+        <Button
+          variant="contained"
+          color="success"
+          size="small"
+          onClick={handleSaveIndividualBill}
+        >
+          Save Individual Bill
+        </Button>
+      </Stack>
+    </div>
   );
 };
 

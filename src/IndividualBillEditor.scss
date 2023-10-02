@@ -1,0 +1,16 @@
+.individual-name-editor,
+.individual-cost-item,
+.individual-cost-editor {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5rem;
+}
+
+.individual-cost-item {
+  border-bottom: 1px solid lightgray;
+}
+
+.individual-cost-editor {
+    margin-top: 1rem !important;
+}
