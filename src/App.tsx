@@ -8,6 +8,8 @@ import {
   AccordionDetails,
   AccordionSummary,
   Button,
+  Card,
+  CardContent,
   Divider,
   Stack,
   Table,
@@ -16,18 +18,38 @@ import {
   TableHead,
   TableRow,
   TextField,
+  ThemeProvider,
+  Typography,
+  createTheme,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CurrencyInput from "./CurrencyInput";
 import CalculationResultsDialog, {
   IIndividualTotal,
 } from "./CalculationResults";
+import colors from "./config/colors";
 
 interface IIndividualBill {
   id: number;
   name: string;
   itemCosts: number[];
 }
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    // primary: "#211a21",
+    // divider: deepOrange[700],
+    background: {
+      default: colors.background.default,
+      paper: colors.background.default,
+    },
+    text: {
+      primary: colors.text.primary,
+      // secondary: "#ddd",
+    },
+  },
+});
 
 function App() {
   const [nextBillId, setNextBillId] = useState<number>(0);
@@ -166,6 +188,10 @@ function App() {
   const reset = () => {
     setNextBillId(0);
     setIndividualBills([]);
+    setTaxValue(0);
+    setTipValue(0);
+    setOtherValue(0);
+    setEvenSplitValue(0);
   };
 
   const handleCloseDialog = (
@@ -176,105 +202,139 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Bill Splitter</h1>
-      </header>
+    <ThemeProvider theme={darkTheme}>
+      <div
+        className="App"
+        style={{ backgroundColor: colors.background.default }}
+      >
+        <header className="app-header">
+          <h1 className="app-header-text">Split Dem Billz</h1>
+        </header>
 
-      <div id="individual-bill-container">
-        <If condition={!individualBills.length}>
-          <p>Add individual to get started!</p>
-        </If>
+        {/* <Divider id="individual-costs-divider">Individual Costs</Divider> */}
 
-        <If condition={!!individualBills.length}>
-          {individualBills.map((bill) => (
-            <Accordion
-              sx={{ width: "100%" }}
-              expanded={individualBillEditorToShow === bill.id}
-              onChange={() => handleIndividualBillEditorChange(bill.id)}
-            >
-              <AccordionSummary
-                id={`individual-bill-header-${bill.id}`}
-                expandIcon={<ExpandMoreIcon />}
+        <div id="individual-bill-container">
+          <h2 className="section-header-text">Individual Costs</h2>
+          {/* <CardContent> */}
+          <If condition={!individualBills.length}>
+            <p>Add individual to get started!</p>
+          </If>
+
+          <If condition={!!individualBills.length}>
+            {individualBills.map((bill) => (
+              <Accordion
+                sx={{ width: "100%" }}
+                expanded={individualBillEditorToShow === bill.id}
+                onChange={() => handleIndividualBillEditorChange(bill.id)}
               >
-                <strong>
-                  {bill.name || "New Individual"}'s Individual Cost: $
-                  {sumCostArray(bill.itemCosts)}
-                </strong>
-              </AccordionSummary>
-              <AccordionDetails>
-                <IndividualBillEditor
-                  {...bill}
-                  setName={(name: string) => updateBillName(bill, name)}
-                  addItemCost={(cost: number) => addBillCost(bill, cost)}
-                  deleteItemCost={(index: number) =>
-                    deleteBillCost(bill, index)
-                  }
-                  closeEditor={() => handleIndividualBillEditorChange(bill.id)}
-                />
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </If>
+                <AccordionSummary
+                  id={`individual-bill-header-${bill.id}`}
+                  className="individual-bill-header"
+                  expandIcon={<ExpandMoreIcon />}
+                  // sx={{
+                  //   backgroundColor: "rgb(41, 20, 113)",
+                  //   border: "1px solid #fff",
+                  // }}
+                >
+                  <h3 className="individual-cost-header-text">
+                    {bill.name || "New Individual"}'s Individual Cost: $
+                    {sumCostArray(bill.itemCosts)}
+                  </h3>
+                </AccordionSummary>
+                <AccordionDetails
+                // sx={{
+                //   backgroundColor: "rgb(41, 20, 113)",
+                //   border: "1px solid #fff",
+                // }}
+                >
+                  <IndividualBillEditor
+                    {...bill}
+                    setName={(name: string) => updateBillName(bill, name)}
+                    addItemCost={(cost: number) => addBillCost(bill, cost)}
+                    deleteItemCost={(index: number) =>
+                      deleteBillCost(bill, index)
+                    }
+                    closeEditor={() =>
+                      handleIndividualBillEditorChange(bill.id)
+                    }
+                  />
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </If>
 
-        <Button variant="contained" color="primary" onClick={addIndividualBill}>
-          Add Individual
-        </Button>
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: colors.info }}
+            onClick={addIndividualBill}
+          >
+            Add New Individual
+          </Button>
+          {/* </CardContent> */}
+        </div>
+
+        {/* <Divider id="group-costs-divider">Group Costs</Divider> */}
+
+        <div id="group-costs-container">
+          <h2 className="section-header-text">Group Costs</h2>
+
+          <Stack spacing={2} sx={{ width: "100%" }}>
+            <TextField
+              label="Tax"
+              id="tax-input"
+              className="group-cost-text-input"
+              value={taxValue}
+              onChange={handleTaxValueChange}
+              size="small"
+              InputProps={{ inputComponent: CurrencyInput as any }}
+            />
+            <TextField
+              label="Tip"
+              id="tip-input"
+              className="group-cost-text-input"
+              value={tipValue}
+              onChange={handleTipValueChange}
+              size="small"
+              InputProps={{ inputComponent: CurrencyInput as any }}
+            />
+            <TextField
+              label=" Other Percentage-Based Costs"
+              id="other-percentage-cost-input"
+              className="group-cost-text-input"
+              value={otherValue}
+              onChange={handleOtherValueChange}
+              size="small"
+              InputProps={{ inputComponent: CurrencyInput as any }}
+            />
+            <TextField
+              label="Even-Split Costs"
+              id="even-split-cost-input"
+              className="group-cost-text-input"
+              value={evenSplitValue}
+              onChange={handleEvenSplitValueChange}
+              size="small"
+              InputProps={{ inputComponent: CurrencyInput as any }}
+            />
+          </Stack>
+        </div>
+
+        <Stack id="bottom-button-container" spacing={1}>
+          <Button variant="contained" color="success" onClick={calculate}>
+            Calculate Split Costs
+          </Button>
+          <Button variant="outlined" color="error" onClick={reset}>
+            Reset All
+          </Button>
+        </Stack>
+
+        <CalculationResultsDialog
+          open={showCalculationResultsDialog}
+          individualTotals={individualTotals}
+          entireBillTotal={calculateEntireBill()}
+          handleClose={handleCloseDialog}
+        />
       </div>
-
-      <Divider id="group-costs-divider">Group Costs</Divider>
-
-      <Stack spacing={2}>
-        <TextField
-          label="Tax"
-          id="tax-input"
-          value={taxValue}
-          onChange={handleTaxValueChange}
-          size="small"
-          InputProps={{ inputComponent: CurrencyInput as any }}
-        />
-        <TextField
-          label="Tip"
-          id="tip-input"
-          value={tipValue}
-          onChange={handleTipValueChange}
-          size="small"
-          InputProps={{ inputComponent: CurrencyInput as any }}
-        />
-        <TextField
-          label=" Other Percentage-Based Costs"
-          id="other-percentage-cost-input"
-          value={otherValue}
-          onChange={handleOtherValueChange}
-          size="small"
-          InputProps={{ inputComponent: CurrencyInput as any }}
-        />
-        <TextField
-          label="Even-Split Costs"
-          id="even-split-cost-input"
-          value={evenSplitValue}
-          onChange={handleEvenSplitValueChange}
-          size="small"
-          InputProps={{ inputComponent: CurrencyInput as any }}
-        />
-      </Stack>
-
-      <Stack id="bottom-button-container" spacing={1}>
-        <Button variant="contained" color="success" onClick={calculate}>
-          Calculate Split Costs
-        </Button>
-        <Button variant="outlined" color="error" onClick={reset}>
-          Reset All
-        </Button>
-      </Stack>
-
-      <CalculationResultsDialog
-        open={showCalculationResultsDialog}
-        individualTotals={individualTotals}
-        entireBillTotal={calculateEntireBill()}
-        handleClose={handleCloseDialog}
-      />
-    </div>
+    </ThemeProvider>
   );
 }
 

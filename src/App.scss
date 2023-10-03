@@ -1,5 +1,15 @@
 .App {
   padding: 1rem;
+  // background-color: rgb(41, 20, 113);
+  color: #fff;
+
+  .app-header-text {
+    text-align: center;
+  }
+
+
+
+  // .section-header-text {}
 
   #individual-bill-container {
     display: flex;
@@ -10,10 +20,16 @@
     & > button {
       margin-top: 1rem;
     }
-  }
 
-  #group-costs-divider {
-    margin: 1rem 0;
+    .individual-cost-header-text {
+      font-size: 1rem;
+    }
+
+    .individual-bill-header {
+      min-height: 0;
+      height: auto;
+      // color:#fff;
+    }
   }
 
   #group-costs-container {
@@ -21,6 +37,10 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+
+    // .group-cost-text-input {
+    //   width: 100%;
+    // }
   }
 
   #bottom-button-container {
