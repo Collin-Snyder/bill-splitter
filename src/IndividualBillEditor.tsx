@@ -10,30 +10,32 @@ interface IndividualBillEditorProps {
   id: number;
   name: string;
   itemCosts: number[];
-  setName: Function;
-  addItemCost: Function;
-  deleteItemCost: Function;
-  closeEditor: Function;
+  onSetName: (name: string) => void;
+  onAddItemCost: (cost: number) => void;
+  onDeleteItemCost: (index: number) => void;
+  onDeleteIndividual: (id: number) => void;
+  onCloseEditor: () => void;
 }
 
 const IndividualBillEditor = ({
   id,
   name,
   itemCosts,
-  setName,
-  addItemCost,
-  deleteItemCost,
-  closeEditor,
+  onSetName,
+  onAddItemCost,
+  onDeleteItemCost,
+  onDeleteIndividual,
+  onCloseEditor,
 }: IndividualBillEditorProps): JSX.Element => {
   const [nameValue, setNameValue] = useState<string>("");
-  const [nextItemCostValue, setNextItemCostValue] = useState<number>(0);
+  const [nextItemCostValue, setNextItemCostValue] = useState<number | null>(null);
 
   const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setNameValue(event.target.value);
   };
 
   const handleSaveName = () => {
-    setName(nameValue);
+    onSetName(nameValue);
     setNameValue("");
   };
 
@@ -44,18 +46,22 @@ const IndividualBillEditor = ({
   };
 
   const handleSaveNextItemCost = () => {
-    addItemCost(nextItemCostValue);
+    onAddItemCost(nextItemCostValue || 0);
     setNextItemCostValue(0);
   };
 
   const handleDeleteCost = (index: number) => {
-    deleteItemCost(index);
+    onDeleteItemCost(index);
   };
 
   const handleSaveIndividualBill = () => {
     if (nameValue) handleSaveName();
     if (nextItemCostValue) handleSaveNextItemCost();
-    closeEditor();
+    onCloseEditor();
+  };
+
+  const handleDeleteIndividual = () => {
+    onDeleteIndividual(id);
   };
 
   return (
@@ -88,7 +94,9 @@ const IndividualBillEditor = ({
           {itemCosts.map((cost, i) => (
             <>
               <div key="cost" className="individual-cost-item">
-                <p><strong>${cost.toFixed(2)}</strong></p>
+                <p>
+                  <strong>${cost.toFixed(2)}</strong>
+                </p>
                 <Button
                   variant="outlined"
                   color="error"
@@ -98,17 +106,17 @@ const IndividualBillEditor = ({
                   Delete
                 </Button>
               </div>
-             
             </>
           ))}
         </If>
 
         <div className="individual-cost-editor">
           <TextField
-            label="Enter a cost item"
+            label="Enter an item's cost"
             id={`new-cost-item-${name || "new-individual"}`}
             value={nextItemCostValue}
             onChange={handleNextItemCostValueChange}
+            placeholder="$0.00"
             size="small"
             InputProps={{ inputComponent: CurrencyInput as any }}
           />
@@ -123,14 +131,26 @@ const IndividualBillEditor = ({
           </Button>
         </div>
 
-        <Button
-          variant="contained"
-          color="success"
-          size="small"
-          onClick={handleSaveIndividualBill}
-        >
-          Save Individual Bill
-        </Button>
+        <div className="individual-bill-button-container">
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            onClick={handleDeleteIndividual}
+            className="delete-individual-btn"
+          >
+            Delete Individual
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            onClick={handleSaveIndividualBill}
+            className="save-individual-btn"
+          >
+            Save Individual Bill
+          </Button>
+        </div>
       </Stack>
     </div>
   );

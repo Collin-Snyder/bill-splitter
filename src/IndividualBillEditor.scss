@@ -12,5 +12,16 @@
 }
 
 .individual-cost-editor {
-    margin-top: 1rem !important;
+  margin-top: 1rem !important;
+}
+
+.individual-bill-button-container {
+  display: flex;
+  justify-content: space-around;
+  gap: 2rem;
+
+  .save-individual-btn,
+  .delete-individual-btn {
+    flex-grow: 1;
+  }
 }

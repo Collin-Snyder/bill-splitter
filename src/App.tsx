@@ -89,6 +89,11 @@ function App() {
     setIndividualBills([...individualBills]);
   };
 
+  const deleteBill = (bill: IIndividualBill) => {
+    const filteredBills = individualBills.filter((b) => b.id !== bill.id);
+    setIndividualBills(filteredBills);
+  };
+
   const sumCostArray = (arr: number[]): number => {
     const sum = arr.reduce((sum, num) => {
       return sum + num;
@@ -213,7 +218,7 @@ function App() {
 
         {/* <Divider id="individual-costs-divider">Individual Costs</Divider> */}
 
-        <div id="individual-bill-container">
+        <div className="section-container" id="individual-bill-container">
           <h2 className="section-header-text">Individual Costs</h2>
           {/* <CardContent> */}
           <If condition={!individualBills.length}>
@@ -249,14 +254,15 @@ function App() {
                 >
                   <IndividualBillEditor
                     {...bill}
-                    setName={(name: string) => updateBillName(bill, name)}
-                    addItemCost={(cost: number) => addBillCost(bill, cost)}
-                    deleteItemCost={(index: number) =>
+                    onSetName={(name: string) => updateBillName(bill, name)}
+                    onAddItemCost={(cost: number) => addBillCost(bill, cost)}
+                    onDeleteItemCost={(index: number) =>
                       deleteBillCost(bill, index)
                     }
-                    closeEditor={() =>
+                    onCloseEditor={() =>
                       handleIndividualBillEditorChange(bill.id)
                     }
+                    onDeleteIndividual={() => deleteBill(bill)}
                   />
                 </AccordionDetails>
               </Accordion>
@@ -275,10 +281,16 @@ function App() {
 
         {/* <Divider id="group-costs-divider">Group Costs</Divider> */}
 
-        <div id="group-costs-container">
+        <div className="section-container" id="group-costs-container">
           <h2 className="section-header-text">Group Costs</h2>
 
-          <Stack spacing={2} sx={{ width: "100%" }}>
+          <Stack
+            spacing={2}
+            sx={{ width: "100%" }}
+            direction="column"
+            alignItems="center"
+            justifyContent="space-evenly"
+          >
             <TextField
               label="Tax"
               id="tax-input"
